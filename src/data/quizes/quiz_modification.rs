@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[derive(ToSchema, Clone, Debug, Serialize, Deserialize)]
 pub struct QuizModification {
     pub name: String,
-    pub icon: String,
+    pub logo: String,
     pub questions: Vec<Question>,
 }
 
@@ -15,7 +15,7 @@ impl QuizModification {
         Quiz {
             _id: Uuid::new_v4().to_string(),
             name: self.name,
-            icon: self.icon,
+            logo: self.logo,
             questions: self.questions,
         }
     }
@@ -24,7 +24,7 @@ impl QuizModification {
         Quiz {
             _id: id.to_string(),
             name: self.name,
-            icon: self.icon,
+            logo: self.logo,
             questions: self.questions,
         }
     }

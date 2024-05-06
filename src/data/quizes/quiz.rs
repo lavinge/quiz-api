@@ -7,6 +7,6 @@ use utoipa::ToSchema;
 pub struct Quiz {
     pub _id: String,
     pub name: String,
-    pub icon: String,
+    pub logo: String,
     pub questions: Vec<Question>,
 }
