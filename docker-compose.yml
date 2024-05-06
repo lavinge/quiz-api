@@ -1,0 +1,60 @@
+version: "3.7"
+
+volumes:
+  minio:
+  mongodb:
+
+services:
+  minio:
+    image: "quay.io/minio/minio:latest"
+    command: "server /data --console-address ':9001'"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: $S3_ACCESS_KEY
+      MINIO_ROOT_PASSWORD: $S3_SECRET_KEY
+    volumes:
+      - "minio:/data"
+
+  minio_initial_setup:
+    image: "minio/mc:latest"
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add logos_storage http://minio:9000 $S3_ACCESS_KEY $S3_SECRET_KEY;
+      /usr/bin/mc mb --ignore-existing logos_storage/$S3_BUCKET;
+      /usr/bin/mc anonymous set public logos_storage/$S3_BUCKET;
+      exit 0;
+      "
+    depends_on:
+      - minio
+
+  mongodb:
+    image: "bitnami/mongodb:6.0.4"
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb:/bitnami/mongodb"
+    environment:
+      MONGODB_ROOT_USER: $MONGODB_USERNAME
+      MONGODB_ROOT_PASSWORD: $MONGODB_PASSWORD
+
+  quizes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      S3_ENDPOINT: $S3_ENDPOINT
+      S3_ACCESS_KEY: $S3_ACCESS_KEY
+      S3_SECRET_KEY: $S3_SECRET_KEY
+      S3_BUCKET: $S3_BUCKET
+      MONGODB_HOSTNAME: $MONGODB_HOSTNAME
+      MONGODB_PORT: $MONGODB_PORT
+      MONGODB_USERNAME: $MONGODB_USERNAME
+      MONGODB_PASSWORD: $MONGODB_PASSWORD
+      RUST_BACKTRACE: "1"
+    depends_on:
+      - "mongodb"
+      - "minio"
